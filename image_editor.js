@@ -9,7 +9,7 @@ var ImageEditor = function (options) {
   var $offsetX = this.$('input[name="offset_x"]');
   var $offsetY = this.$('input[name="offset_y"]');
 
-  var lastVal = Number($imageSize.val());
+  var lastZoom = Number($imageSize.val());
 
   // Stuff for generating preview and dragging
   var $bg = $('.image-preview'),
@@ -91,17 +91,17 @@ var ImageEditor = function (options) {
       imageHeight = $hiddenImage.height();
       imageWidth = $hiddenImage.width();
 
-      $imageSize.val(100);
-      lastVal = 100;
+      Zoom.setup(
+        { width: imageWidth, height: imageHeight },
+        { width: bgWidth, height: bgHeight });
 
-      var widthOffset = -(imageWidth - bgWidth) / 2;
-      var heightOffset = -(imageHeight - bgHeight) / 2;
+      $imageSize.val(0);
+      lastZoom = 0;
 
-      $bg.css('background-size', 'auto');
-      $bg.css('background-position', widthOffset + 'px ' + heightOffset + 'px');
-      $offsetX.val(widthOffset);
-      $offsetY.val(heightOffset);
-      start = { x: widthOffset, y: heightOffset };
+      var widthOffset = 0;
+      var heightOffset = 0;
+
+      updateImage();
 
       $bg.addClass('with-cursor');
 
@@ -109,26 +109,28 @@ var ImageEditor = function (options) {
     };
   });
 
-  $imageSize.on('change', function () {
+  $imageSize.on('change', updateImage);
+
+  var updateImage = function() {
     var val = Number($imageSize.val());
     if (imageHeight && imageWidth) {
-      var updatedWidth = Math.round(imageWidth / 100 * val);
-      var updatedHeight = Math.round(imageHeight / 100 * val);
+      var zoom = Zoom.get(val);
+      var updatedWidth = Math.round(imageWidth * zoom);
+      var updatedHeight = Math.round(imageHeight * zoom);
 
       $bg.css({
         'background-size': updatedWidth + 'px ' + updatedHeight + 'px'
       });
 
-      var viewportSize = $bg.width() / 2;
       var x, y;
       x = parseInt($bg.css('background-position-x'), 10);
       y = parseInt($bg.css('background-position-y'), 10);
 
-      var oldRatio = lastVal / 100;
-      var newRatio = val / 100;
+      var oldZoom = lastZoom;
+      var newZoom = zoom;
 
-      var newX = (x / oldRatio * newRatio + width / 2) - width / 2 / oldRatio * newRatio;
-      var newY = (y / oldRatio * newRatio + height / 2) - height / 2 / oldRatio * newRatio;
+      var newX = (x / oldZoom * newZoom + width / 2) - width / 2 / oldZoom * newZoom;
+      var newY = (y / oldZoom * newZoom + height / 2) - height / 2 / oldZoom * newZoom;
 
       start.x = newX;
       start.y = newY;
@@ -137,9 +139,28 @@ var ImageEditor = function (options) {
       $offsetX.val(Math.round(newX));
       $offsetY.val(Math.round(newY));
 
-      lastVal = val;
+      lastZoom = zoom;
     }
-  });
+  };
+
+  var Zoom = (function () {
+    var minZoom;
+    var maxZoom;
+
+    return {
+      setup: function(imageSize, bgSize) {
+        var widthRatio = bgSize.width / imageSize.width;
+        var heightRatio = bgSize.height / imageSize.height;
+        minZoom = widthRatio > heightRatio ? widthRatio : heightRatio;
+
+        maxZoom = minZoom < 1 ? 1 : minZoom;
+      },
+
+      get: function(val) {
+        return val * (maxZoom - minZoom) + minZoom;
+      }
+    }
+  })();
 };
 
 ImageEditor.prototype.$ = function (selector) {
