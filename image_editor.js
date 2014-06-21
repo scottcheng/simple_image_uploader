@@ -23,6 +23,21 @@ var ImageEditor = function(options) {
   var start = { x: 0, y: 0 };
   var movecontinue = false;
 
+  var fixOffset = function(offset) {
+    if (offset.x > 0) {
+      offset.x = 0;
+    } else if (offset.x + imageSize.w * lastZoom < bgSize.w) {
+      offset.x = bgSize.w - imageSize.w * lastZoom;
+    }
+    if (offset.y > 0) {
+      offset.y = 0;
+    } else if (offset.y + imageSize.h * lastZoom < bgSize.h) {
+      offset.y = bgSize.h - imageSize.h * lastZoom;
+    }
+
+    return offset;
+  };
+
   var move = function(e) {
     if (movecontinue) {
       var offset = {
@@ -30,16 +45,7 @@ var ImageEditor = function(options) {
         y: start.y + e.clientY - origin.y
       };
 
-      if (offset.x > 0) {
-        offset.x = 0;
-      } else if (offset.x + imageSize.w * lastZoom < bgSize.w) {
-        offset.x = bgSize.w - imageSize.w * lastZoom;
-      }
-      if (offset.y > 0) {
-        offset.y = 0;
-      } else if (offset.y + imageSize.h * lastZoom < bgSize.h) {
-        offset.y = bgSize.h - imageSize.h * lastZoom;
-      }
+      offset = fixOffset(offset);
 
       start.x = offset.x;
       start.y = offset.y;
@@ -128,7 +134,7 @@ var ImageEditor = function(options) {
       var newX = (x / oldZoom * newZoom + bgSize.w / 2) - bgSize.w / 2 / oldZoom * newZoom;
       var newY = (y / oldZoom * newZoom + bgSize.h / 2) - bgSize.h / 2 / oldZoom * newZoom;
 
-      start = { x: newX, y: newY };
+      start = fixOffset({ x: newX, y: newY });
 
       updateImagePosition(start);
 
