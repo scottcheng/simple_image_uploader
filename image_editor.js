@@ -124,8 +124,8 @@ var ImageEditor = function(options) {
       });
 
       var x, y;
-      x = parseInt($bg.css('background-position-x'), 10);
-      y = parseInt($bg.css('background-position-y'), 10);
+      x = window.parseInt($bg.css('background-position-x'), 10);
+      y = window.parseInt($bg.css('background-position-y'), 10);
 
       var oldZoom = lastZoom;
       var newZoom = zoom;
