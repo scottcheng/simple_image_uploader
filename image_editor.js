@@ -145,7 +145,7 @@ var ImageEditor = function (options) {
     $offsetY.val(Math.round(position.y));
   };
 
-  $imageSize.on('change', updateImage);
+  $imageSize.on('change mousemove', updateImage);
 
   var Zoom = (function () {
     var minZoom;
