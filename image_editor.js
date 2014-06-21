@@ -20,7 +20,7 @@ var ImageEditor = function(options) {
   };
 
   var origin = { x: 0, y: 0 };
-  var start = { x: 0, y: 0 };
+  var offset = { x: 0, y: 0 };
   var movecontinue = false;
 
   var fixOffset = function(offset) {
@@ -40,17 +40,12 @@ var ImageEditor = function(options) {
 
   var move = function(e) {
     if (movecontinue) {
-      var offset = {
-        x: start.x + e.clientX - origin.x,
-        y: start.y + e.clientY - origin.y
+      offset = {
+        x: offset.x + e.clientX - origin.x,
+        y: offset.y + e.clientY - origin.y
       };
 
-      offset = fixOffset(offset);
-
-      start.x = offset.x;
-      start.y = offset.y;
-
-      updateImagePosition(start);
+      updateImageOffset(offset);
     }
 
     origin.x = e.clientX;
@@ -81,8 +76,7 @@ var ImageEditor = function(options) {
   };
 
   var reset = function() {
-    start = { x: 0, y: 0 };
-    updateImagePosition(start);
+    updateImageOffset({ x: 0, y: 0 });
   };
 
   // Read image locally
@@ -119,30 +113,21 @@ var ImageEditor = function(options) {
       var updatedWidth = Math.round(imageSize.w * zoom);
       var updatedHeight = Math.round(imageSize.h * zoom);
 
-      $bg.css({
-        'background-size': updatedWidth + 'px ' + updatedHeight + 'px'
-      });
-
-      var x, y;
-      x = window.parseInt($bg.css('background-position-x'), 10);
-      y = window.parseInt($bg.css('background-position-y'), 10);
-
       var oldZoom = lastZoom;
       var newZoom = zoom;
 
+      var newX = (offset.x / oldZoom * newZoom + bgSize.w / 2) - bgSize.w / 2 / oldZoom * newZoom;
+      var newY = (offset.y / oldZoom * newZoom + bgSize.h / 2) - bgSize.h / 2 / oldZoom * newZoom;
 
-      var newX = (x / oldZoom * newZoom + bgSize.w / 2) - bgSize.w / 2 / oldZoom * newZoom;
-      var newY = (y / oldZoom * newZoom + bgSize.h / 2) - bgSize.h / 2 / oldZoom * newZoom;
-
-      start = fixOffset({ x: newX, y: newY });
-
-      updateImagePosition(start);
+      updateImageOffset({ x: newX, y: newY });
+      $bg.css('background-size', updatedWidth + 'px ' + updatedHeight + 'px');
 
       lastZoom = zoom;
     }
   };
 
-  var updateImagePosition = function(position) {
+  var updateImageOffset = function(position) {
+    offset = fixOffset(position);
     $bg.css('background-position', position.x + 'px ' + position.y + 'px');
     $offsetX.val(Math.round(position.x));
     $offsetY.val(Math.round(position.y));
