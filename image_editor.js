@@ -1,6 +1,4 @@
 var ImageEditor = function (options) {
-  var width = options.width;
-  var height = options.height;
   this.$el = options.$el;
   var disabled = true;
   var $fileInput = this.$('input[name="image"]');
@@ -9,36 +7,44 @@ var ImageEditor = function (options) {
   var $offsetX = this.$('input[name="offset_x"]');
   var $offsetY = this.$('input[name="offset_y"]');
 
+  var initialZoomVal = 0;
+
   var lastZoom = Number($imageSize.val());
 
-  // Stuff for generating preview and dragging
-  var $bg = $('.image-preview'),
-    elbounds = {
-      w: parseInt($bg.width()),
-      h: parseInt($bg.height())
-    },
-    bounds = {w: 2350 - elbounds.w, h: 1750 - elbounds.h},
-    origin = {x: 0, y: 0},
-    start = {x: 0, y: 0},
-    movecontinue = false;
+  var imageSize;
 
-  function move (e){
-    var inbounds = {x: false, y: false};
-    var offset = {
-      x: start.x - (origin.x - e.clientX),
-      y: start.y - (origin.y - e.clientY)
-    };
+  var $bg = $('.image-preview');
+  var bgSize = {
+    w: $bg.innerWidth(),
+    h: $bg.innerHeight()
+  };
 
-    inbounds.x = offset.x < 0 && (offset.x * -1) < bounds.w;
-    inbounds.y = offset.y < 0 && (offset.y * -1) < bounds.h;
+  var origin = { x: 0, y: 0 };
+  var start = { x: 0, y: 0 };
+  var movecontinue = false;
 
-    if (movecontinue && inbounds.x && inbounds.y) {
+  function move (e) {
+    if (movecontinue) {
+      var offset = {
+        x: start.x + e.clientX - origin.x,
+        y: start.y + e.clientY - origin.y
+      };
+
+      if (offset.x > 0) {
+        offset.x = 0;
+      } else if (offset.x + imageSize.w * lastZoom < bgSize.w) {
+        offset.x = bgSize.w - imageSize.w * lastZoom;
+      }
+      if (offset.y > 0) {
+        offset.y = 0;
+      } else if (offset.y + imageSize.h * lastZoom < bgSize.h) {
+        offset.y = bgSize.h - imageSize.h * lastZoom;
+      }
+
       start.x = offset.x;
       start.y = offset.y;
 
-      $(this).css('background-position', start.x + 'px ' + start.y + 'px');
-      $offsetX.val(Math.round(start.x));
-      $offsetY.val(Math.round(start.y));
+      updateImagePosition(start);
     }
 
     origin.x = e.clientX;
@@ -69,15 +75,14 @@ var ImageEditor = function (options) {
   }
 
   function reset () {
-    start = {x: 0, y: 0};
-    $(this).css('backgroundPosition', '0 0');
+    start = { x: 0, y: 0 };
+    updateImagePosition(start);
   }
 
   $bg.bind('mousedown mouseup mouseleave', handle);
   $bg.bind('dblclick', reset);
 
   //read image locally
-  var imageHeight, imageWidth;
   $fileInput.on('change', function () {
     var oFReader = new FileReader();
     var file = $fileInput.get(0).files[0];
@@ -86,20 +91,15 @@ var ImageEditor = function (options) {
       $bg.css('background-image', 'url(' + oFREvent.target.result + ')');
       $hiddenImage.attr('src', oFREvent.target.result);
 
-      var bgHeight = $bg.height();
-      var bgWidth = $bg.width();
-      imageHeight = $hiddenImage.height();
-      imageWidth = $hiddenImage.width();
+      imageSize = {
+        w: $hiddenImage.width(),
+        h: $hiddenImage.height()
+      };
 
-      Zoom.setup(
-        { width: imageWidth, height: imageHeight },
-        { width: bgWidth, height: bgHeight });
+      Zoom.setup(imageSize, bgSize);
 
-      $imageSize.val(0);
-      lastZoom = 0;
-
-      var widthOffset = 0;
-      var heightOffset = 0;
+      $imageSize.val(initialZoomVal);
+      lastZoom = Zoom.get(initialZoomVal);
 
       updateImage();
 
@@ -109,14 +109,12 @@ var ImageEditor = function (options) {
     };
   });
 
-  $imageSize.on('change', updateImage);
-
   var updateImage = function() {
     var val = Number($imageSize.val());
-    if (imageHeight && imageWidth) {
+    if (imageSize && imageSize.w && imageSize.h) {
       var zoom = Zoom.get(val);
-      var updatedWidth = Math.round(imageWidth * zoom);
-      var updatedHeight = Math.round(imageHeight * zoom);
+      var updatedWidth = Math.round(imageSize.w * zoom);
+      var updatedHeight = Math.round(imageSize.h * zoom);
 
       $bg.css({
         'background-size': updatedWidth + 'px ' + updatedHeight + 'px'
@@ -129,19 +127,25 @@ var ImageEditor = function (options) {
       var oldZoom = lastZoom;
       var newZoom = zoom;
 
-      var newX = (x / oldZoom * newZoom + width / 2) - width / 2 / oldZoom * newZoom;
-      var newY = (y / oldZoom * newZoom + height / 2) - height / 2 / oldZoom * newZoom;
 
-      start.x = newX;
-      start.y = newY;
+      var newX = (x / oldZoom * newZoom + bgSize.w / 2) - bgSize.w / 2 / oldZoom * newZoom;
+      var newY = (y / oldZoom * newZoom + bgSize.h / 2) - bgSize.h / 2 / oldZoom * newZoom;
 
-      $bg.css('background-position', newX + 'px ' + newY + 'px');
-      $offsetX.val(Math.round(newX));
-      $offsetY.val(Math.round(newY));
+      start = { x: newX, y: newY };
+
+      updateImagePosition(start);
 
       lastZoom = zoom;
     }
   };
+
+  var updateImagePosition = function(position) {
+    $bg.css('background-position', position.x + 'px ' + position.y + 'px');
+    $offsetX.val(Math.round(position.x));
+    $offsetY.val(Math.round(position.y));
+  };
+
+  $imageSize.on('change', updateImage);
 
   var Zoom = (function () {
     var minZoom;
@@ -149,8 +153,8 @@ var ImageEditor = function (options) {
 
     return {
       setup: function(imageSize, bgSize) {
-        var widthRatio = bgSize.width / imageSize.width;
-        var heightRatio = bgSize.height / imageSize.height;
+        var widthRatio = bgSize.w / imageSize.w;
+        var heightRatio = bgSize.h / imageSize.h;
         minZoom = widthRatio > heightRatio ? widthRatio : heightRatio;
 
         maxZoom = minZoom < 1 ? 1 : minZoom;
@@ -159,7 +163,7 @@ var ImageEditor = function (options) {
       get: function(val) {
         return val * (maxZoom - minZoom) + minZoom;
       }
-    }
+    };
   })();
 };
 
