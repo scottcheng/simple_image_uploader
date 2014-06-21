@@ -1,4 +1,4 @@
-var ImageEditor = function (options) {
+var ImageEditor = function(options) {
   this.$el = options.$el;
   var disabled = true;
   var $fileInput = this.$('input[name="image"]');
@@ -23,7 +23,7 @@ var ImageEditor = function (options) {
   var start = { x: 0, y: 0 };
   var movecontinue = false;
 
-  function move (e) {
+  var move = function(e) {
     if (movecontinue) {
       var offset = {
         x: start.x + e.clientX - origin.x,
@@ -52,9 +52,9 @@ var ImageEditor = function (options) {
 
     e.stopPropagation();
     return false;
-  }
+  };
 
-  function handle (e) {
+  var handle = function(e) {
     if (disabled) {
       return;
     }
@@ -72,22 +72,19 @@ var ImageEditor = function (options) {
 
     e.stopPropagation();
     return false;
-  }
+  };
 
-  function reset () {
+  var reset = function() {
     start = { x: 0, y: 0 };
     updateImagePosition(start);
-  }
+  };
 
-  $bg.bind('mousedown mouseup mouseleave', handle);
-  $bg.bind('dblclick', reset);
-
-  //read image locally
-  $fileInput.on('change', function () {
+  // Read image locally
+  $fileInput.on('change', function() {
     var oFReader = new FileReader();
     var file = $fileInput.get(0).files[0];
     oFReader.readAsDataURL(file);
-    oFReader.onload = function (oFREvent) {
+    oFReader.onload = function(oFREvent) {
       $bg.css('background-image', 'url(' + oFREvent.target.result + ')');
       $hiddenImage.attr('src', oFREvent.target.result);
 
@@ -145,9 +142,7 @@ var ImageEditor = function (options) {
     $offsetY.val(Math.round(position.y));
   };
 
-  $imageSize.on('change mousemove', updateImage);
-
-  var Zoom = (function () {
+  var Zoom = (function() {
     var minZoom;
     var maxZoom;
 
@@ -165,8 +160,13 @@ var ImageEditor = function (options) {
       }
     };
   })();
+
+  $bg.bind('mousedown mouseup mouseleave', handle);
+  $bg.bind('dblclick', reset);
+
+  $imageSize.on('change mousemove', updateImage);
 };
 
-ImageEditor.prototype.$ = function (selector) {
+ImageEditor.prototype.$ = function(selector) {
   return this.$el.find(selector);
 };
