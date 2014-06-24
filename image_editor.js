@@ -175,8 +175,34 @@ window.ImageEditor = function(options) {
   $bg.bind('dblclick', reset);
 
   $imageSize.on('change mousemove', updateImage);
+
+  this.getCroppedImage = function() {
+    var croppedSize = {
+      w: bgSize.w,
+      h: bgSize.h
+    };
+    if (options.fitWidth && !options.fitHeight) {
+      if (imageSize.h * lastZoom < bgSize.h) {
+        croppedSize.h = imageSize.h * lastZoom;
+      }
+    } else if (options.fitHeight && !options.fitWidth) {
+      if (imageSize.w * lastZoom < bgSize.w) {
+        croppedSize.w = imageSize.w * lastZoom;
+      }
+    }
+
+    var $canvas = $('<canvas style="display: none; position: absolute; top: -10000px; left: -10000px;" ' +
+      'width="' + croppedSize.w + '" height="' + croppedSize.h + '" />').appendTo(this.$el);
+    var canvasContext = $canvas[0].getContext('2d');
+
+    canvasContext.drawImage($hiddenImage[0],
+      offset.x, offset.y,
+      lastZoom * imageSize.w, lastZoom * imageSize.h);
+
+    return $canvas[0].toDataURL();
+  };
 };
 
-ImageEditor.prototype.$ = function(selector) {
+window.ImageEditor.prototype.$ = function(selector) {
   return this.$el.find(selector);
 };
