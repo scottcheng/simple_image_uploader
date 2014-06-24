@@ -8,16 +8,20 @@ window.ImageEditor = function(options) {
   var $bg = options.$preview || $('.image-preview');
 
   var initialZoomVal = 0;
+  var lastZoom = null;
+  var disabled = true;
 
-  var lastZoom = Number($imageSize.val());
-
-  var imageSize;
-
-  var $bg = $('.image-preview');
+  if (options.width) {
+    $bg.width(options.width);
+  }
+  if (options.height) {
+    $bg.height(options.height);
+  }
   var bgSize = {
-    w: $bg.innerWidth(),
-    h: $bg.innerHeight()
+    w: options.width || $bg.width(),
+    h: options.height || $bg.height()
   };
+  var imageSize;
 
   var origin = { x: 0, y: 0 };
   var offset = { x: 0, y: 0 };
@@ -81,10 +85,14 @@ window.ImageEditor = function(options) {
 
   // Read image locally
   $fileInput.on('change', function() {
+    options.onFileChange && options.onFileChange();
+
     var oFReader = new FileReader();
     var file = $fileInput.get(0).files[0];
     oFReader.readAsDataURL(file);
     oFReader.onload = function(oFREvent) {
+      options.onImageLoaded && options.onImageLoaded();
+
       $bg.css('background-image', 'url(' + oFREvent.target.result + ')');
       $hiddenImage.attr('src', oFREvent.target.result);
 
