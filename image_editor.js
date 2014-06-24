@@ -28,12 +28,17 @@ window.ImageEditor = function(options) {
   var movecontinue = false;
 
   var fixOffset = function(offset) {
-    if (offset.x > 0) {
+    if (imageSize.w * lastZoom <= bgSize.w) {
+      offset.x = 0;
+    } else if (offset.x > 0) {
       offset.x = 0;
     } else if (offset.x + imageSize.w * lastZoom < bgSize.w) {
       offset.x = bgSize.w - imageSize.w * lastZoom;
     }
-    if (offset.y > 0) {
+
+    if (imageSize.h * lastZoom <= bgSize.h) {
+      offset.y = 0
+    } else if (offset.y > 0) {
       offset.y = 0;
     } else if (offset.y + imageSize.h * lastZoom < bgSize.h) {
       offset.y = bgSize.h - imageSize.h * lastZoom;
