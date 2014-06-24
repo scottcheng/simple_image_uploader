@@ -1,11 +1,11 @@
-var ImageEditor = function(options) {
+window.ImageEditor = function(options) {
   this.$el = options.$el;
-  var disabled = true;
-  var $fileInput = this.$('input[name="image"]');
-  var $hiddenImage = this.$('.image-hidden-preview');
-  var $imageSize = this.$('.image-size');
-  var $offsetX = this.$('input[name="offset_x"]');
-  var $offsetY = this.$('input[name="offset_y"]');
+  var $fileInput = options.$fileInput || this.$('input[name="image"]');
+  var $hiddenImage = $('<img class="image-hidden-preview" style="display: none" />').appendTo(this.$el);
+  var $imageSize = this.$('.image-zoom-level');
+  var $offsetX = $('<input name="offset_x" type="hidden" value="0" />').appendTo(this.$el);
+  var $offsetY = $('<input name="offset_y" type="hidden" value="0" />').appendTo(this.$el);
+  var $bg = options.$preview || $('.image-preview');
 
   var initialZoomVal = 0;
 
