@@ -141,7 +141,13 @@ window.ImageEditor = function(options) {
       setup: function(imageSize, bgSize) {
         var widthRatio = bgSize.w / imageSize.w;
         var heightRatio = bgSize.h / imageSize.h;
-        minZoom = widthRatio > heightRatio ? widthRatio : heightRatio;
+        if (options.fitWidth && !options.fitHeight) {
+          minZoom = widthRatio;
+        } else if (options.fitHeight && !options.fitWidth) {
+          minZoom = heightRatio;
+        } else {
+          minZoom = widthRatio < heightRatio ? widthRatio : heightRatio;
+        }
 
         maxZoom = minZoom < 1 ? 1 : minZoom;
       },

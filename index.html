@@ -4,9 +4,13 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="image_editor.js"></script>
   <script>
-  $(function () { new ImageEditor({
-    $el: $('.image-uploader')
-  }); });
+  $(function () {
+    new ImageEditor({
+      $el: $('.image-uploader'),
+      fitWidth: true,
+      fitHeight: false
+    });
+  });
   </script>
 
   <style>
