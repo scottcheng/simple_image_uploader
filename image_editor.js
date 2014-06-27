@@ -5,7 +5,7 @@ window.ImageEditor = function(options) {
   var $imageSize = this.$('.image-zoom-level');
   var $offsetX = $('<input name="offset_x" type="hidden" value="0" />').appendTo(this.$el);
   var $offsetY = $('<input name="offset_y" type="hidden" value="0" />').appendTo(this.$el);
-  var $bg = options.$preview || $('.image-preview');
+  var $preview = options.$preview || this.$('.image-preview');
 
   var initialZoomSliderPos = 0;
   var disabled = true;
@@ -16,14 +16,14 @@ window.ImageEditor = function(options) {
   var lastZoom = (options.imageState && options.imageState.zoom) || null;
 
   if (options.width) {
-    $bg.width(options.width);
+    $preview.width(options.width);
   }
   if (options.height) {
-    $bg.height(options.height);
+    $preview.height(options.height);
   }
-  var bgSize = {
-    w: options.width || $bg.width(),
-    h: options.height || $bg.height()
+  var previewSize = {
+    w: options.width || $preview.width(),
+    h: options.height || $preview.height()
   };
   var imageSize;
 
@@ -32,20 +32,20 @@ window.ImageEditor = function(options) {
   var movecontinue = false;
 
   var fixOffset = function(offset) {
-    if (imageSize.w * lastZoom <= bgSize.w) {
+    if (imageSize.w * lastZoom <= previewSize.w) {
       offset.x = 0;
     } else if (offset.x > 0) {
       offset.x = 0;
-    } else if (offset.x + imageSize.w * lastZoom < bgSize.w) {
-      offset.x = bgSize.w - imageSize.w * lastZoom;
+    } else if (offset.x + imageSize.w * lastZoom < previewSize.w) {
+      offset.x = previewSize.w - imageSize.w * lastZoom;
     }
 
-    if (imageSize.h * lastZoom <= bgSize.h) {
+    if (imageSize.h * lastZoom <= previewSize.h) {
       offset.y = 0
     } else if (offset.y > 0) {
       offset.y = 0;
-    } else if (offset.y + imageSize.h * lastZoom < bgSize.h) {
-      offset.y = bgSize.h - imageSize.h * lastZoom;
+    } else if (offset.y + imageSize.h * lastZoom < previewSize.h) {
+      offset.y = previewSize.h - imageSize.h * lastZoom;
     }
 
     return offset;
@@ -73,13 +73,13 @@ window.ImageEditor = function(options) {
       return;
     }
     movecontinue = false;
-    $bg.unbind('mousemove', move);
+    $preview.unbind('mousemove', move);
 
     if (e.type == 'mousedown') {
       origin.x = e.clientX;
       origin.y = e.clientY;
       movecontinue = true;
-      $bg.bind('mousemove', move);
+      $preview.bind('mousemove', move);
     } else {
       $(document.body).focus();
     }
@@ -107,7 +107,7 @@ window.ImageEditor = function(options) {
   });
 
   var loadImage = function(imageData, sliderPos) {
-    $bg.css('background-image', 'url(' + imageData + ')');
+    $preview.css('background-image', 'url(' + imageData + ')');
     $hiddenImage.attr('src', imageData);
 
     imageSize = {
@@ -115,7 +115,7 @@ window.ImageEditor = function(options) {
       h: $hiddenImage.height()
     };
 
-    Zoom.setup(imageSize, bgSize);
+    Zoom.setup(imageSize, previewSize);
 
     $imageSize.val(sliderPos);
     lastZoom = Zoom.get(sliderPos);
@@ -137,11 +137,11 @@ window.ImageEditor = function(options) {
       var oldZoom = lastZoom;
       var newZoom = zoom;
 
-      var newX = (offset.x / oldZoom * newZoom + bgSize.w / 2) - bgSize.w / 2 / oldZoom * newZoom;
-      var newY = (offset.y / oldZoom * newZoom + bgSize.h / 2) - bgSize.h / 2 / oldZoom * newZoom;
+      var newX = (offset.x / oldZoom * newZoom + previewSize.w / 2) - previewSize.w / 2 / oldZoom * newZoom;
+      var newY = (offset.y / oldZoom * newZoom + previewSize.h / 2) - previewSize.h / 2 / oldZoom * newZoom;
 
       updateImageOffset({ x: newX, y: newY });
-      $bg.css('background-size', updatedWidth + 'px ' + updatedHeight + 'px');
+      $preview.css('background-size', updatedWidth + 'px ' + updatedHeight + 'px');
 
       lastZoom = zoom;
     }
@@ -149,7 +149,7 @@ window.ImageEditor = function(options) {
 
   var updateImageOffset = function(position) {
     offset = fixOffset(position);
-    $bg.css('background-position', position.x + 'px ' + position.y + 'px');
+    $preview.css('background-position', position.x + 'px ' + position.y + 'px');
     $offsetX.val(Math.round(position.x));
     $offsetY.val(Math.round(position.y));
   };
@@ -159,9 +159,9 @@ window.ImageEditor = function(options) {
     var maxZoom;
 
     return {
-      setup: function(imageSize, bgSize) {
-        var widthRatio = bgSize.w / imageSize.w;
-        var heightRatio = bgSize.h / imageSize.h;
+      setup: function(imageSize, previewSize) {
+        var widthRatio = previewSize.w / imageSize.w;
+        var heightRatio = previewSize.h / imageSize.h;
         if (options.fitWidth && !options.fitHeight) {
 
           minZoom = widthRatio;
@@ -186,8 +186,8 @@ window.ImageEditor = function(options) {
     };
   })();
 
-  $bg.bind('mousedown mouseup mouseleave', handle);
-  $bg.bind('dblclick', reset);
+  $preview.bind('mousedown mouseup mouseleave', handle);
+  $preview.bind('dblclick', reset);
 
   $imageSize.on('change mousemove', updateImage);
 
@@ -197,15 +197,15 @@ window.ImageEditor = function(options) {
 
   this.getCroppedImage = function() {
     var croppedSize = {
-      w: bgSize.w,
-      h: bgSize.h
+      w: previewSize.w,
+      h: previewSize.h
     };
     if (options.fitWidth && !options.fitHeight) {
-      if (imageSize.h * lastZoom < bgSize.h) {
+      if (imageSize.h * lastZoom < previewSize.h) {
         croppedSize.h = imageSize.h * lastZoom;
       }
     } else if (options.fitHeight && !options.fitWidth) {
-      if (imageSize.w * lastZoom < bgSize.w) {
+      if (imageSize.w * lastZoom < previewSize.w) {
         croppedSize.w = imageSize.w * lastZoom;
       }
     }
