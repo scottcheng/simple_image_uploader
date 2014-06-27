@@ -65,6 +65,9 @@ window.ImageEditor = function(options) {
       offset.y = previewSize.h - imageSize.h * lastZoom;
     }
 
+    offset.x = Math.round(offset.x);
+    offset.y = Math.round(offset.y);
+
     return offset;
   };
 
