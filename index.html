@@ -7,8 +7,9 @@
   $(function () {
     new ImageEditor({
       $el: $('.image-uploader'),
-      fitWidth: true,
-      fitHeight: false
+      exportZoom: 2,
+      $previewContainer: $('.image-preview-container'),
+      imageBackground: true
     });
   });
   </script>
@@ -27,6 +28,11 @@
       cursor: move;
     }
 
+    .image-background {
+      opacity: .2;
+      cursor: auto;
+    }
+
     .file-upload {
       text-align: left;
     }
@@ -42,12 +48,20 @@
     .optional-fields {
       display: block;
     }
+
+    input {
+      position: relative;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
   <div class="image-uploader">
     <input type="file" name="image">
-    <div class="image-preview"></div>
+    <!-- .image-preview needs a container for image-background to work -->
+    <div class="image-preview-container">
+      <div class="image-preview"></div>
+    </div>
     <div class="image-size-label">
       Resize image
     </div>

@@ -6,6 +6,19 @@ window.ImageEditor = function(options) {
   var $offsetX = $('<input name="offset_x" type="hidden" value="0" />').appendTo(this.$el);
   var $offsetY = $('<input name="offset_y" type="hidden" value="0" />').appendTo(this.$el);
   var $preview = options.$preview || this.$('.image-preview');
+  if (options.imageBackground) {
+    var $previewContainer = options.$previewContainer || this.$('.image-preview-container');
+    var $imageBg = $('<img />')
+      .addClass('image-background')
+      .css({
+        position: 'absolute',
+        zIndex: 0
+      });
+    $previewContainer
+      .css('position', 'relative')
+      .prepend($imageBg);
+    $preview.css('position', 'relative');
+  }
 
   var initialZoomSliderPos = 0;
   var disabled = true;
@@ -109,6 +122,9 @@ window.ImageEditor = function(options) {
   var loadImage = function(imageData, sliderPos) {
     $preview.css('background-image', 'url(' + imageData + ')');
     $hiddenImage.attr('src', imageData);
+    if (options.imageBackground) {
+      $imageBg.attr('src', imageData);
+    }
 
     imageSize = {
       w: $hiddenImage.width(),
@@ -140,8 +156,15 @@ window.ImageEditor = function(options) {
       var newX = (offset.x / oldZoom * newZoom + previewSize.w / 2) - previewSize.w / 2 / oldZoom * newZoom;
       var newY = (offset.y / oldZoom * newZoom + previewSize.h / 2) - previewSize.h / 2 / oldZoom * newZoom;
 
+
       updateImageOffset({ x: newX, y: newY });
       $preview.css('background-size', updatedWidth + 'px ' + updatedHeight + 'px');
+      if (options.imageBackground) {
+        $imageBg.css({
+          width: updatedWidth,
+          height: updatedHeight
+        });
+      }
 
       lastZoom = zoom;
     }
@@ -150,6 +173,12 @@ window.ImageEditor = function(options) {
   var updateImageOffset = function(position) {
     offset = fixOffset(position);
     $preview.css('background-position', position.x + 'px ' + position.y + 'px');
+    if (options.imageBackground) {
+      $imageBg.css({
+        left: offset.x,
+        top: offset.y
+      });
+    }
     $offsetX.val(Math.round(position.x));
     $offsetY.val(Math.round(position.y));
   };
