@@ -18,6 +18,10 @@ window.ImageEditor = function(options) {
       .css('position', 'relative')
       .prepend($imageBg);
     $preview.css('position', 'relative');
+    var imageBgPreviewOffset = {
+      x: window.parseInt($preview.css('border-left-width')),
+      y: window.parseInt($preview.css('border-top-width'))
+    };
   }
 
   var initialZoomSliderPos = 0;
@@ -175,8 +179,8 @@ window.ImageEditor = function(options) {
     $preview.css('background-position', position.x + 'px ' + position.y + 'px');
     if (options.imageBackground) {
       $imageBg.css({
-        left: offset.x,
-        top: offset.y
+        left: offset.x + imageBgPreviewOffset.x,
+        top: offset.y + imageBgPreviewOffset.y
       });
     }
     $offsetX.val(Math.round(position.x));
