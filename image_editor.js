@@ -7,9 +7,12 @@ window.ImageEditor = function(options) {
   var $offsetY = $('<input name="offset_y" type="hidden" value="0" />').appendTo(this.$el);
   var $bg = options.$preview || $('.image-preview');
 
-  var initialZoomVal = 0;
-  var lastZoom = null;
+  var initialZoomSliderPos = 0;
   var disabled = true;
+
+  var imageData = (options.imageState && options.imageState.data) || null;
+  var sliderPos = (options.imageState && options.imageState.sliderPos) || null;
+  var lastZoom = (options.imageState && options.imageState.zoom) || null;
 
   if (options.width) {
     $bg.width(options.width);
@@ -23,8 +26,8 @@ window.ImageEditor = function(options) {
   };
   var imageSize;
 
+  var offset = (options.imageState && options.imageState.offset) || { x: 0, y: 0 };
   var origin = { x: 0, y: 0 };
-  var offset = { x: 0, y: 0 };
   var movecontinue = false;
 
   var fixOffset = function(offset) {
@@ -96,33 +99,37 @@ window.ImageEditor = function(options) {
     var file = $fileInput.get(0).files[0];
     oFReader.readAsDataURL(file);
     oFReader.onload = function(oFREvent) {
-      $bg.css('background-image', 'url(' + oFREvent.target.result + ')');
-      $hiddenImage.attr('src', oFREvent.target.result);
-
-      imageSize = {
-        w: $hiddenImage.width(),
-        h: $hiddenImage.height()
-      };
-
-      Zoom.setup(imageSize, bgSize);
-
-      $imageSize.val(initialZoomVal);
-      lastZoom = Zoom.get(initialZoomVal);
-
-      updateImage();
-
-      $bg.addClass('with-cursor');
-
-      disabled = false;
-
-      options.onImageLoaded && options.onImageLoaded();
+      imageData = oFREvent.target.result;
+      sliderPos = initialZoomSliderPos;
+      loadImage(imageData, sliderPos);
     };
   });
 
+  var loadImage = function(imageData, sliderPos) {
+    $bg.css('background-image', 'url(' + imageData + ')');
+    $hiddenImage.attr('src', imageData);
+
+    imageSize = {
+      w: $hiddenImage.width(),
+      h: $hiddenImage.height()
+    };
+
+    Zoom.setup(imageSize, bgSize);
+
+    $imageSize.val(sliderPos);
+    lastZoom = Zoom.get(sliderPos);
+
+    updateImage();
+
+    disabled = false;
+
+    options.onImageLoaded && options.onImageLoaded();
+  };
+
   var updateImage = function() {
-    var val = Number($imageSize.val());
+    sliderPos = Number($imageSize.val());
     if (imageSize && imageSize.w && imageSize.h) {
-      var zoom = Zoom.get(val);
+      var zoom = Zoom.get(sliderPos);
       var updatedWidth = Math.round(imageSize.w * zoom);
       var updatedHeight = Math.round(imageSize.h * zoom);
 
@@ -165,8 +172,8 @@ window.ImageEditor = function(options) {
         maxZoom = minZoom < 1 ? 1 : minZoom;
       },
 
-      get: function(val) {
-        return val * (maxZoom - minZoom) + minZoom;
+      get: function(sliderPos) {
+        return sliderPos * (maxZoom - minZoom) + minZoom;
       },
 
       isZoomable: function() {
@@ -209,8 +216,21 @@ window.ImageEditor = function(options) {
 
     return $canvas[0].toDataURL();
   };
+
+  this.getImageState = function() {
+    return {
+      data: imageData,
+      offset: offset,
+      zoom: lastZoom,
+      sliderPos: sliderPos
+    };
+  };
+
+  if (options.imageState) {
+    loadImage(imageData, sliderPos);
+  }
 };
 
-window.ImageEditor.prototype.$ = function(selector) {
+ImageEditor.prototype.$ = function(selector) {
   return this.$el.find(selector);
 };
