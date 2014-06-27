@@ -226,6 +226,13 @@ window.ImageEditor = function(options) {
     };
   };
 
+  this.getImageSize = function() {
+    return {
+      width: imageSize.w,
+      height: imageSize.h
+    };
+  };
+
   if (options.imageState) {
     loadImage(imageData, sliderPos);
   }
