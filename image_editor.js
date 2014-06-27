@@ -122,6 +122,7 @@ window.ImageEditor = function(options) {
     oFReader.onload = function(oFREvent) {
       imageData = oFREvent.target.result;
       sliderPos = initialZoomSliderPos;
+      offset = { x: 0, y: 0 };
       loadImage(imageData, sliderPos);
     };
   });
