@@ -96,8 +96,6 @@ window.ImageEditor = function(options) {
     var file = $fileInput.get(0).files[0];
     oFReader.readAsDataURL(file);
     oFReader.onload = function(oFREvent) {
-      options.onImageLoaded && options.onImageLoaded();
-
       $bg.css('background-image', 'url(' + oFREvent.target.result + ')');
       $hiddenImage.attr('src', oFREvent.target.result);
 
@@ -116,6 +114,8 @@ window.ImageEditor = function(options) {
       $bg.addClass('with-cursor');
 
       disabled = false;
+
+      options.onImageLoaded && options.onImageLoaded();
     };
   });
 
@@ -167,6 +167,10 @@ window.ImageEditor = function(options) {
 
       get: function(val) {
         return val * (maxZoom - minZoom) + minZoom;
+      },
+
+      isZoomable: function() {
+        return minZoom !== maxZoom;
       }
     };
   })();
@@ -175,6 +179,10 @@ window.ImageEditor = function(options) {
   $bg.bind('dblclick', reset);
 
   $imageSize.on('change mousemove', updateImage);
+
+  this.isZoomable = function() {
+    return Zoom.isZoomable();
+  };
 
   this.getCroppedImage = function() {
     var croppedSize = {
