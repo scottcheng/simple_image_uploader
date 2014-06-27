@@ -9,6 +9,7 @@ window.ImageEditor = function(options) {
 
   var initialZoomSliderPos = 0;
   var disabled = true;
+  var exportZoom = options.exportZoom || 1;
 
   var imageData = (options.imageState && options.imageState.data) || null;
   var sliderPos = (options.imageState && options.imageState.sliderPos) || null;
@@ -162,14 +163,17 @@ window.ImageEditor = function(options) {
         var widthRatio = bgSize.w / imageSize.w;
         var heightRatio = bgSize.h / imageSize.h;
         if (options.fitWidth && !options.fitHeight) {
+
           minZoom = widthRatio;
         } else if (options.fitHeight && !options.fitWidth) {
           minZoom = heightRatio;
-        } else {
+        } else if (options.fitWidth && options.fitHeight) {
           minZoom = widthRatio < heightRatio ? widthRatio : heightRatio;
+        } else {
+          minZoom = widthRatio < heightRatio ? heightRatio : widthRatio;
         }
 
-        maxZoom = minZoom < 1 ? 1 : minZoom;
+        maxZoom = minZoom < 1 / exportZoom ? 1 / exportZoom : minZoom;
       },
 
       get: function(sliderPos) {
@@ -206,13 +210,18 @@ window.ImageEditor = function(options) {
       }
     }
 
-    var $canvas = $('<canvas style="display: none; position: absolute; top: -10000px; left: -10000px;" ' +
-      'width="' + croppedSize.w + '" height="' + croppedSize.h + '" />').appendTo(this.$el);
+    var $canvas = $('<canvas />')
+      .attr({
+        style: 'display: none;',
+        width: croppedSize.w * exportZoom,
+        height: croppedSize.h * exportZoom
+      })
+      .appendTo(this.$el);
     var canvasContext = $canvas[0].getContext('2d');
 
     canvasContext.drawImage($hiddenImage[0],
-      offset.x, offset.y,
-      lastZoom * imageSize.w, lastZoom * imageSize.h);
+      offset.x * exportZoom, offset.y * exportZoom,
+      lastZoom * exportZoom * imageSize.w, lastZoom * exportZoom * imageSize.h);
 
     return $canvas[0].toDataURL();
   };
