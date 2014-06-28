@@ -6,31 +6,6 @@ window.ImageEditor = function(options) {
   var $offsetX = $('<input name="offset_x" type="hidden" value="0" />').appendTo(this.$el);
   var $offsetY = $('<input name="offset_y" type="hidden" value="0" />').appendTo(this.$el);
   var $preview = options.$preview || this.$('.image-preview');
-  if (options.imageBackground) {
-    var $previewContainer = options.$previewContainer || this.$('.image-preview-container');
-    var $imageBg = $('<img />')
-      .addClass('image-background')
-      .css({
-        position: 'absolute',
-        zIndex: 0
-      });
-    $previewContainer
-      .css('position', 'relative')
-      .prepend($imageBg);
-    $preview.css('position', 'relative');
-    var imageBgPreviewOffset = {
-      x: window.parseInt($preview.css('border-left-width')),
-      y: window.parseInt($preview.css('border-top-width'))
-    };
-  }
-
-  var initialZoomSliderPos = 0;
-  var disabled = true;
-  var exportZoom = options.exportZoom || 1;
-
-  var imageData = (options.imageState && options.imageState.data) || null;
-  var sliderPos = (options.imageState && options.imageState.sliderPos) || null;
-  var lastZoom = (options.imageState && options.imageState.zoom) || null;
 
   if (options.width) {
     $preview.width(options.width);
@@ -42,6 +17,43 @@ window.ImageEditor = function(options) {
     w: options.width || $preview.width(),
     h: options.height || $preview.height()
   };
+
+  if (options.imageBackground) {
+    var imageBackgroundBorderSize = options.imageBackgroundBorderSize || 0;
+    var $previewContainer = options.$previewContainer || this.$('.image-preview-container');
+    var $imageBg = $('<img />')
+      .addClass('image-background')
+      .css({
+        position: 'absolute'
+      });
+    var $imageBgContainer = $('<div />')
+      .addClass('image-background-container')
+      .css({
+        position: 'absolute',
+        zIndex: 0,
+        top: -imageBackgroundBorderSize,
+        left: -imageBackgroundBorderSize,
+        width: previewSize.w + imageBackgroundBorderSize * 2,
+        height: previewSize.h + imageBackgroundBorderSize * 2
+      }).append($imageBg);
+    $previewContainer
+      .css('position', 'relative')
+      .prepend($imageBgContainer);
+    $preview.css('position', 'relative');
+    var imageBgPreviewOffset = {
+      x: window.parseInt($preview.css('border-left-width')) + imageBackgroundBorderSize,
+      y: window.parseInt($preview.css('border-top-width')) + imageBackgroundBorderSize
+    };
+  }
+
+  var initialZoomSliderPos = 0;
+  var disabled = true;
+  var exportZoom = options.exportZoom || 1;
+
+  var imageData = (options.imageState && options.imageState.data) || null;
+  var sliderPos = (options.imageState && options.imageState.sliderPos) || null;
+  var lastZoom = (options.imageState && options.imageState.zoom) || null;
+
   var imageSize;
 
   var offset = (options.imageState && options.imageState.offset) || { x: 0, y: 0 };
