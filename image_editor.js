@@ -70,7 +70,7 @@ window.ImageEditor = function(options) {
     }
 
     if (imageSize.h * lastZoom <= previewSize.h) {
-      offset.y = 0
+      offset.y = 0;
     } else if (offset.y > 0) {
       offset.y = 0;
     } else if (offset.y + imageSize.h * lastZoom < previewSize.h) {
@@ -107,7 +107,7 @@ window.ImageEditor = function(options) {
     movecontinue = false;
     $preview.unbind('mousemove', move);
 
-    if (e.type == 'mousedown') {
+    if (e.type === 'mousedown') {
       origin.x = e.clientX;
       origin.y = e.clientY;
       movecontinue = true;
@@ -126,7 +126,9 @@ window.ImageEditor = function(options) {
 
   // Read image locally
   $fileInput.on('change', function() {
-    options.onFileChange && options.onFileChange();
+    if (options.onFileChange) {
+      options.onFileChange();
+    }
 
     var oFReader = new FileReader();
     var file = $fileInput.get(0).files[0];
@@ -160,7 +162,9 @@ window.ImageEditor = function(options) {
 
     disabled = false;
 
-    options.onImageLoaded && options.onImageLoaded();
+    if (options.onImageLoaded) {
+      options.onImageLoaded();
+    }
   };
 
   var updateImage = function() {
@@ -233,7 +237,7 @@ window.ImageEditor = function(options) {
         return minZoom !== maxZoom;
       }
     };
-  })();
+  }());
 
   $preview.bind('mousedown mouseup mouseleave', handle);
   $preview.bind('dblclick', reset);
@@ -245,6 +249,10 @@ window.ImageEditor = function(options) {
   };
 
   this.getCroppedImage = function() {
+    if (!imageData) {
+      return '';
+    }
+
     var croppedSize = {
       w: previewSize.w,
       h: previewSize.h
@@ -285,6 +293,10 @@ window.ImageEditor = function(options) {
   };
 
   this.getImageSize = function() {
+    if (!imageSize) {
+      return null;
+    }
+
     return {
       width: imageSize.w,
       height: imageSize.h
@@ -296,6 +308,6 @@ window.ImageEditor = function(options) {
   }
 };
 
-ImageEditor.prototype.$ = function(selector) {
+window.ImageEditor.prototype.$ = function(selector) {
   return this.$el.find(selector);
 };
