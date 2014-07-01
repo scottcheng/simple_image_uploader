@@ -144,8 +144,13 @@ window.ImageEditor = function(options) {
   var loadImage = function(imageData, sliderPos) {
     $hiddenImage.attr('src', imageData);
 
+    $preview.css('background-image', 'url(' + imageData + ')');
+
+    if (options.onImageLoading) {
+      options.onImageLoading();
+    }
+
     $hiddenImage.load(function() {
-      $preview.css('background-image', 'url(' + imageData + ')');
       if (options.imageBackground) {
         $imageBg.attr('src', imageData);
       }
@@ -306,7 +311,7 @@ window.ImageEditor = function(options) {
     };
   };
 
-  if (options.imageState) {
+  if (options.imageState && (options.imageState.data || options.imageState.url)) {
     loadImage(imageData, sliderPos);
   }
 };
