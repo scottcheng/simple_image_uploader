@@ -7,10 +7,13 @@
   $(function () {
     new ImageEditor({
       $el: $('.image-uploader'),
-      exportZoom: 2,
+      exportZoom: 1.25,
       $previewContainer: $('.image-preview-container'),
       imageBackground: true,
-      imageBackgroundBorderSize: 10
+      imageBackgroundBorderSize: 10,
+      imageState: {
+        url: 'http://lorempixel.com/500/400/'
+      }
     });
   });
   </script>
